@@ -36,6 +36,7 @@ let score = 0;
 let playerName = "";
 let timer;
 let timeLeft = 10;
+let timeBetweenQuestions = 2; // זמן הפסקה בין השאלות (שניות)
 
 function startGame() {
     playerName = document.getElementById("player-name").value.trim();
@@ -56,13 +57,14 @@ function loadQuestion() {
     document.getElementById("timer").style.display = "block";
     timeLeft = 10;
     updateTimer();
-    
+
     timer = setInterval(() => {
         timeLeft--;
         updateTimer();
         if (timeLeft === 0) {
             clearInterval(timer);
-            nextQuestion();
+            checkAnswer(null, null); // נבדוק אם השחקן לא ענה
+            document.getElementById("next-btn").style.display = "block";
         }
     }, 1000);
 
@@ -94,30 +96,45 @@ function checkAnswer(button, selectedOption) {
     if (selectedOption === correctAnswer) {
         button.style.backgroundColor = "green";
         score++;
-    } else {
+    } else if (selectedOption !== null) {
         button.style.backgroundColor = "red";
     }
-    
+
+    // הצגת תשובה נכונה אם השחקן טעה או אם נגמר הזמן
+    if (timeLeft === 0 && selectedOption !== correctAnswer) {
+        document.querySelectorAll("#options button").forEach(btn => {
+            if (btn.innerText === correctAnswer) {
+                btn.style.backgroundColor = "green";
+            }
+        });
+    }
+
     document.getElementById("next-btn").style.display = "block";
 }
 
 function nextQuestion() {
     currentQuestionIndex++;
     if (currentQuestionIndex < questions.length) {
-        loadQuestion();
+        document.getElementById("next-btn").style.display = "none"; // נסתר כפתור Next
+        setTimeout(loadQuestion, timeBetweenQuestions * 1000); // ממתינים לפני שמטעינים את השאלה הבאה
     } else {
         endGame();
     }
 }
 
 function endGame() {
-    document.getElementById("quiz-container").innerHTML = `<h2>סיימת את החידון! ציון: ${score}/${questions.length}</h2><button onclick='restartGame()'>שחק שוב</button>`;
+    document.getElementById("quiz-container").innerHTML = `
+        <h2>סיימת את החידון! ציון: ${score}/${questions.length}</h2>
+        <button onclick='viewLeaderboard()'>הראה לוח תוצאות</button>
+        <button onclick='restartGame()'>שחק שוב</button>
+    `;
     savePlayerScore();
 }
 
 function restartGame() {
     currentQuestionIndex = 0;
     score = 0;
+    timeLeft = 10; // איפוס זמן
     document.getElementById("quiz-container").innerHTML = "";
     document.getElementById("quiz-container").style.display = "none";
     document.getElementById("start-btn").style.display = "block";
@@ -143,6 +160,14 @@ function updateLeaderboard() {
     });
 }
 
+function viewLeaderboard() {
+    document.getElementById("quiz-container").style.display = "none";
+    document.getElementById("start-btn").style.display = "none";
+    document.getElementById("leaderboard-container").style.display = "block";
+}
+
 updateLeaderboard();
-
-
+<div id="leaderboard-container" style="display:none;">
+    <table id="leaderboard"></table>
+    <button onclick="viewLeaderboard()">חזור למשחק</button>
+</div>
