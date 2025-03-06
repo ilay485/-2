@@ -38,13 +38,16 @@ let timer;
 let timeLeft = 10;
 
 function startGame() {
-    playerName = document.getElementById("player-name").value;
+    playerName = document.getElementById("player-name").value.trim();
     if (!playerName) {
         document.getElementById("player-name").style.border = "2px solid red";
+        document.getElementById("error-message").innerText = "אנא הכנס שם!";
         return;
     }
+    document.getElementById("error-message").innerText = "";
+    document.getElementById("player-name").style.border = "";
     document.getElementById("quiz-container").style.display = "block";
-    document.querySelector("button").style.display = "none";
+    document.getElementById("start-btn").style.display = "none";
     loadQuestion();
 }
 
@@ -78,18 +81,23 @@ function loadQuestion() {
 }
 
 function updateTimer() {
-    document.getElementById("timer").innerText = `זמן שנותר: ${timeLeft} שניות`;
+    const timerElement = document.getElementById("timer");
+    timerElement.innerText = `זמן שנותר: ${timeLeft} שניות`;
+    timerElement.style.color = timeLeft > 5 ? "green" : timeLeft > 2 ? "orange" : "red";
 }
 
 function checkAnswer(button, selectedOption) {
     clearInterval(timer);
     const correctAnswer = questions[currentQuestionIndex].answer;
+    document.querySelectorAll("#options button").forEach(btn => btn.disabled = true);
+    
     if (selectedOption === correctAnswer) {
         button.style.backgroundColor = "green";
         score++;
     } else {
         button.style.backgroundColor = "red";
     }
+    
     document.getElementById("next-btn").style.display = "block";
 }
 
@@ -110,8 +118,9 @@ function endGame() {
 function restartGame() {
     currentQuestionIndex = 0;
     score = 0;
+    document.getElementById("quiz-container").innerHTML = "";
     document.getElementById("quiz-container").style.display = "none";
-    document.querySelector("button").style.display = "block";
+    document.getElementById("start-btn").style.display = "block";
 }
 
 function savePlayerScore() {
@@ -135,4 +144,5 @@ function updateLeaderboard() {
 }
 
 updateLeaderboard();
+
 
